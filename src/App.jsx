@@ -22,15 +22,38 @@ const LogoDiv = styled.div`
 const TodoUl = styled.div``
 
 const ItemLi = styled.li`
-  display: flex;
-  justify-content: center;
-  align-items: center;
   list-style: none;
-  min-width: 100px;
+  min-width: 164px;
   min-height: 30px;
-  background-color: #7fc5ff;
-  margin: 10px 10px;
-  border-radius: 5px;
+  margin: 10px;
+  background-color: aliceblue;
+  border-radius: 50px;
+`
+
+const TodoItem = styled.div`
+  display: grid;
+  grid-template-columns: calc(100% - 64px) 32px 32px;
+  align-items: center;
+`
+const TodoContent = styled.span`
+  background-color: #c9e2f8;
+  padding: 10px;
+  border-radius: 50px;
+`
+
+const DoneMarkCb = styled.input``
+
+const DelMarkBtn = styled.button`
+  text-align: center;
+  align-content: center;
+  background-color: transparent;
+  border: none;
+  color: red;
+  &:hover {
+    background-color: red;
+    color: aliceblue;
+    border-radius: 50px;
+  }
 `
 
 const RightDiv = styled.div`
@@ -49,19 +72,23 @@ const FooterDiv = styled.div`
 
 const AddBox = styled.div`
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  margin: 5px;
 `
 
 const AddInput = styled.input`
-  width: 80%;
+  min-width: calc(100% - 100px);
   font-size: 18px;
+  border-radius: 50px;
+  padding: 5px;
 `
 
 const AddBtn = styled.button`
-  width: 20%;
+  width: 64px;
   background-color: #e65e9e;
   color: #dddddd;
   border: none;
+  border-radius: 50px;
 `
 
 export default function App() {
@@ -81,7 +108,25 @@ export default function App() {
 
   let todoItemArr = []
   todos.forEach((todo, index) => {
-    todoItemArr.push(<ItemLi key={'todo-index-' + index}>{todo.todo}</ItemLi>)
+    todoItemArr.push(
+      <ItemLi id={'todo-index-' + index} key={'todo-index-' + index}>
+        <TodoItem>
+          <TodoContent>{todo.todo}</TodoContent>
+          <DoneMarkCb type="checkbox" />
+          <DelMarkBtn
+            onClick={(e) => {
+              invoke('remove_todo', { id: todo.id }).then((res) => {
+                if (res === 'success') {
+                  document.querySelector('#todo-index-' + index).remove()
+                }
+              })
+            }}
+          >
+            X
+          </DelMarkBtn>
+        </TodoItem>
+      </ItemLi>
+    )
   })
 
   const addRef = useRef()
@@ -95,18 +140,23 @@ export default function App() {
         </LeftDiv>
         <RightDiv>
           <AddBox>
-            <AddInput id={'todoInput'} ref={inputRef}/>
-            <AddBtn ref={addRef} onClick={(e) => {
-              const todo = inputRef.current.value
-              if(!todo && todo === ''){
-                return
-              }
-              invoke('add_todo', { todo: todo }).then((res) => {
-                let todo = JSON.parse(res)
-                let newTodos = [todo].concat(todos)
-                setTodos(newTodos)
-              })
-            }}>添加</AddBtn>
+            <AddInput id={'todoInput'} ref={inputRef} />
+            <AddBtn
+              ref={addRef}
+              onClick={(e) => {
+                const todo = inputRef.current.value
+                if (!todo && todo === '') {
+                  return
+                }
+                invoke('add_todo', { todo: todo }).then((res) => {
+                  let todo = JSON.parse(res)
+                  let newTodos = [todo].concat(todos)
+                  setTodos(newTodos)
+                })
+              }}
+            >
+              Add
+            </AddBtn>
           </AddBox>
           <TodoUl>{todoItemArr}</TodoUl>
         </RightDiv>
