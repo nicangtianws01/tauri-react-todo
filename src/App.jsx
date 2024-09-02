@@ -30,15 +30,16 @@ const ItemLi = styled.li`
   border-radius: 50px;
 `
 
-const TodoItem = styled.div`
+const TodoItemDiv = styled.div`
   display: grid;
   grid-template-columns: calc(100% - 64px) 32px 32px;
   align-items: center;
 `
 const TodoContent = styled.span`
-  background-color: #c9e2f8;
+  background-color: ${props => props.done ? "#dddddd" : "#c9e2f8"};;
   padding: 10px;
   border-radius: 50px;
+  text-decoration: ${props => props.done ? "line-through" : "none"};
 `
 
 const DoneMarkCb = styled.input``
@@ -89,7 +90,50 @@ const AddBtn = styled.button`
   color: #dddddd;
   border: none;
   border-radius: 50px;
+  &:hover{
+    color: #e65e9e;
+    background-color: aliceblue;
+  }
 `
+
+function TodoItem({ id, title, tag, status }) {
+  const [itemStatus, setItemStatus] = useState(status)
+  return (
+    <ItemLi id={'todo-id-' + id}>
+      <TodoItemDiv>
+        <TodoContent done={itemStatus === 'DONE'}>{title}</TodoContent>
+        <DoneMarkCb
+          type="checkbox"
+          checked={itemStatus === 'DONE'}
+          onChange={(e) => {
+            invoke('mark_todo', {
+              id: id,
+              status: e.target.checked ? 'DONE' : 'TODO',
+            }).then((res) => {
+              if (res === 'DONE') {
+                setItemStatus('DONE')
+              }
+              if (res === 'TODO') {
+                setItemStatus('TODO')
+              }
+            })
+          }}
+        />
+        <DelMarkBtn
+          onClick={(e) => {
+            invoke('remove_todo', { id: id }).then((res) => {
+              if (res === 'success') {
+                document.querySelector('#todo-id-' + id).remove()
+              }
+            })
+          }}
+        >
+          X
+        </DelMarkBtn>
+      </TodoItemDiv>
+    </ItemLi>
+  )
+}
 
 export default function App() {
   const [msg, setMsg] = useState('')
@@ -109,23 +153,13 @@ export default function App() {
   let todoItemArr = []
   todos.forEach((todo, index) => {
     todoItemArr.push(
-      <ItemLi id={'todo-index-' + index} key={'todo-index-' + index}>
-        <TodoItem>
-          <TodoContent>{todo.todo}</TodoContent>
-          <DoneMarkCb type="checkbox" />
-          <DelMarkBtn
-            onClick={(e) => {
-              invoke('remove_todo', { id: todo.id }).then((res) => {
-                if (res === 'success') {
-                  document.querySelector('#todo-index-' + index).remove()
-                }
-              })
-            }}
-          >
-            X
-          </DelMarkBtn>
-        </TodoItem>
-      </ItemLi>
+      <TodoItem
+        id={todo.id}
+        title={todo.title}
+        tag={todo.tag}
+        status={todo.status}
+        key={'todo-index-' + index}
+      />
     )
   })
 
