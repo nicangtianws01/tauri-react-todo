@@ -64,7 +64,7 @@ impl Database {
         };
         conn.execute(
             "INSERT INTO todos (title, tag, status) VALUES (?1, ?2, ?3)",
-            (&todo.title, &todo.tag, &todo.status),
+            (&todo.title, "", "TODO"),
         )
         .expect("error add todo");
         return serde_json::to_string(&todo).expect("error parse todo");

@@ -36,7 +36,7 @@ const TodoItemDiv = styled.div`
   align-items: center;
 `
 const TodoContent = styled.span`
-  background-color: ${props => props.done ? "#dddddd" : "#c9e2f8"};;
+  background-color: ${props => props.done ? "#dddddd" : "#c9e2f8"};
   padding: 10px;
   border-radius: 50px;
   text-decoration: ${props => props.done ? "line-through" : "none"};
@@ -74,25 +74,30 @@ const FooterDiv = styled.div`
 const AddBox = styled.div`
   display: flex;
   justify-content: space-between;
-  margin: 5px;
+  margin: 10px;
 `
 
 const AddInput = styled.input`
-  min-width: calc(100% - 100px);
-  font-size: 18px;
+  min-width: calc(100% - 64px);
+  font-size: 16px;
+  border: 1px solid #aed5f7;
   border-radius: 50px;
   padding: 5px;
+  &:focus {
+    border-color: #e65e9e;
+    outline: none;
+  }
 `
 
 const AddBtn = styled.button`
   width: 64px;
   background-color: #e65e9e;
-  color: #dddddd;
+  color: #fffeee;
   border: none;
   border-radius: 50px;
   &:hover{
-    color: #e65e9e;
-    background-color: aliceblue;
+    color: #333333;
+    background-color: #aed5f7;
   }
 `
 
