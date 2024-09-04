@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import styled from 'styled-components'
 import { invoke } from '@tauri-apps/api'
+import { confirm } from '@tauri-apps/api/dialog'
 import { useEffect } from 'react'
 
 const MainDiv = styled.div`
@@ -36,10 +37,10 @@ const TodoItemDiv = styled.div`
   align-items: center;
 `
 const TodoContent = styled.span`
-  background-color: ${props => props.done ? "#dddddd" : "#c9e2f8"};
+  background-color: ${(props) => (props.done ? '#dddddd' : '#c9e2f8')};
   padding: 10px;
   border-radius: 50px;
-  text-decoration: ${props => props.done ? "line-through" : "none"};
+  text-decoration: ${(props) => (props.done ? 'line-through' : 'none')};
 `
 
 const DoneMarkCb = styled.input``
@@ -95,7 +96,7 @@ const AddBtn = styled.button`
   color: #fffeee;
   border: none;
   border-radius: 50px;
-  &:hover{
+  &:hover {
     color: #333333;
     background-color: #aed5f7;
   }
@@ -125,7 +126,10 @@ function TodoItem({ id, title, tag, status }) {
           }}
         />
         <DelMarkBtn
-          onClick={(e) => {
+          onClick={async (e) => {
+            if (!(await confirm('是否确认删除？', '警告'))) {
+              return
+            }
             invoke('remove_todo', { id: id }).then((res) => {
               if (res === 'success') {
                 document.querySelector('#todo-id-' + id).remove()
