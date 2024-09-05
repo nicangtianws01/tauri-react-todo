@@ -11,13 +11,22 @@ const MainDiv = styled.div`
 
 const LeftDiv = styled.div``
 
-const LogoDiv = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
+const MenuBox = styled.ul`
+  list-style: none;
   min-width: 100px;
   min-height: 50px;
-  background-color: #32e9a3;
+  padding: 0;
+`
+
+const MenuLi = styled.li`
+  background-color: ${(props) => (props.active ? '#2894db' : '#80dfbbce')};
+  color: ${(props) => (props.active ? '#eee' : '#000')};
+  margin: 5px;
+  padding: 10px;
+  border-radius: 50px;
+  &:hover {
+    background-color: #419cd8c1;
+  }
 `
 
 const TodoUl = styled.div``
@@ -96,11 +105,20 @@ const AddBtn = styled.button`
   color: #fffeee;
   border: none;
   border-radius: 50px;
+  margin-left: 10px;
   &:hover {
     color: #333333;
     background-color: #aed5f7;
   }
 `
+
+function MenuItem({ id, name, active, onClick }) {
+  return (
+    <MenuLi id={'menu-id-' + id} active={active} onClick={onClick}>
+      {name}
+    </MenuLi>
+  )
+}
 
 function TodoItem({ id, title, tag, status }) {
   const [itemStatus, setItemStatus] = useState(status)
@@ -145,19 +163,48 @@ function TodoItem({ id, title, tag, status }) {
 }
 
 export default function App() {
-  const [msg, setMsg] = useState('')
   const [todos, setTodos] = useState([])
+  const [activeMenu, setActiveMenu] = useState('ALL')
+
+  let menuItemArr = []
+  let menus = {
+    ALL: {
+      id: 1,
+      name: 'ALL',
+    },
+    TODO: {
+      id: 2,
+      name: 'TODO',
+    },
+    DONE: {
+      id: 3,
+      name: 'DONE',
+    },
+  }
+
+  Object.keys(menus).forEach((key, index) => {
+    let menu = menus[key]
+    menuItemArr.push(
+      <MenuItem
+        id={menu.id}
+        name={menu.name}
+        active={activeMenu == key}
+        key={'menu-index-' + index}
+        onClick={() => {
+          console.log('click: ' + key)
+          setActiveMenu(key)
+        }}
+      />
+    )
+  })
 
   useEffect(() => {
-    invoke('greet', { name: 'World' }).then((response) => setMsg(response))
-  }, [])
-
-  useEffect(() => {
-    invoke('init_todo').then((res) => {
+    let filter = { status: activeMenu }
+    invoke('init_todo', filter).then((res) => {
       let todos = JSON.parse(res)
       setTodos(todos)
     })
-  }, [])
+  }, [activeMenu])
 
   let todoItemArr = []
   todos.forEach((todo, index) => {
@@ -179,7 +226,7 @@ export default function App() {
     <>
       <MainDiv>
         <LeftDiv>
-          <LogoDiv>{msg}</LogoDiv>
+          <MenuBox>{menuItemArr}</MenuBox>
         </LeftDiv>
         <RightDiv>
           <AddBox>

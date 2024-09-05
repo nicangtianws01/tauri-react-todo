@@ -34,10 +34,14 @@ impl Database {
         Database { conn }
     }
 
-    pub fn list(&self) -> String {
+    pub fn list(&self, status: &str) -> String {
         let conn = &self.conn;
+        let mut sql = "select id, title, tag, status from todos order by id desc".to_string();
+        if status != "ALL" {
+          sql = format!("select id, title, tag, status from todos where status = \'{}\' order by id desc", status);
+        }
         let mut stmt = conn
-            .prepare("select id, title, tag, status from todos order by id desc")
+            .prepare(&sql)
             .expect("error list todos");
         let rows = stmt
             .query_map((), |row| {
