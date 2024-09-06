@@ -8,11 +8,12 @@ import useLocalStorage from './hooks/localStorage'
 const MainDiv = styled.div`
   display: grid;
   grid-template-columns: 1fr 3fr;
+  padding-bottom: 50px;
 `
 
 const LeftDiv = styled.div``
 
-const MenuBox = styled.ul`
+const MenuUl = styled.ul`
   list-style: none;
   min-width: 100px;
   min-height: 50px;
@@ -81,7 +82,7 @@ const FooterDiv = styled.div`
   background-color: #d3d3d3;
 `
 
-const AddBox = styled.div`
+const AddBoxDiv = styled.div`
   display: flex;
   justify-content: space-between;
   margin: 10px;
@@ -112,15 +113,77 @@ const AddBtn = styled.button`
   }
 `
 
-function MenuItem({ id, name, active, onClick }) {
+function AddBox({ activeTab, menusArr, refresh }) {
+  const addRef = useRef()
+  const inputRef = useRef()
   return (
-    <MenuLi id={'menu-id-' + id} $active={active} onClick={onClick}>
-      {name}
-    </MenuLi>
+    <AddBoxDiv>
+      <AddInput id={'todoInput'} ref={inputRef} />
+      <AddBtn
+        ref={addRef}
+        onClick={async (e) => {
+          const todo = inputRef.current.value
+          if (!todo && todo === '') {
+            return
+          }
+          invoke('add_todo', { todo: todo }).then((res) => {
+            if (res !== 'success') {
+              message(res, '错误')
+              return
+            }
+            refresh()
+          })
+        }}
+      >
+        Add
+      </AddBtn>
+    </AddBoxDiv>
   )
 }
 
-function TodoItem({ id, title, tag, status }) {
+function MenuList({ menus, activeTab, setActiveTab }) {
+  let menuItemArr = []
+
+  Object.keys(menus).forEach((key, index) => {
+    const menu = menus[key]
+    menuItemArr.push(
+      <MenuLi
+        id={'menu-id-' + menu.id}
+        $active={activeTab === key}
+        onClick={() => {
+          setActiveTab(key)
+        }}
+        key={'menu-key-' + index}
+      >
+        {menu.name}
+      </MenuLi>
+    )
+  })
+
+  return <MenuUl>{menuItemArr}</MenuUl>
+}
+
+function TodoList({ todos, activeTab, menusArr,refresh }) {
+  let todoItemArr = []
+  todos.forEach((todo, index) => {
+    if (activeTab !== menusArr[0] && todo.status !== activeTab) {
+      return
+    }
+    todoItemArr.push(
+      <TodoItem
+        id={todo.id}
+        title={todo.title}
+        tag={todo.tag}
+        status={todo.status}
+        refresh={refresh}
+        key={'todo-key-' + index}
+      />
+    )
+  })
+  return <TodoUl>{todoItemArr}</TodoUl>
+}
+
+function TodoItem({ id, title, tag, status, refresh }) {
   const [itemStatus, setItemStatus] = useState(status)
   return (
     <ItemLi id={'todo-id-' + id}>
@@ -149,9 +212,11 @@ function TodoItem({ id, title, tag, status }) {
               return
             }
             invoke('remove_todo', { id: id }).then((res) => {
-              if (res === 'success') {
-                document.querySelector('#todo-id-' + id).remove()
+              if (res !== 'success') {
+                message(res, '错误')
+                return
               }
+              refresh()
             })
           }}
         >
@@ -167,7 +232,6 @@ export default function App() {
   // const [activeMenu, setActiveMenu] = useState('ALL')
   const [activeTab, setActiveTab] = useLocalStorage('activeTab', 'ALL')
 
-  let menuItemArr = []
   const menus = {
     ALL: {
       id: 1,
@@ -183,73 +247,32 @@ export default function App() {
     },
   }
 
-  Object.keys(menus).forEach((key, index) => {
-    const menu = menus[key]
-    menuItemArr.push(
-      <MenuItem
-        id={menu.id}
-        name={menu.name}
-        active={activeTab == key}
-        key={'menu-index-' + index}
-        onClick={() => {
-          console.log('click: ' + key)
-          setActiveTab(key)
-        }}
-      />
-    )
-  })
+  const menusArr = Object.keys(menus)
 
-  useEffect(() => {
-    let filter = { status: activeTab }
-    invoke('init_todo', filter).then((res) => {
+  const refresh = () => {
+    invoke('init_todo').then((res) => {
       let newTodos = JSON.parse(res)
       setTodos(newTodos)
     })
+  }
+  useEffect(() => {
+    refresh()
   }, [activeTab])
 
-  let todoItemArr = []
-  todos.forEach((todo, index) => {
-    todoItemArr.push(
-      <TodoItem
-        id={todo.id}
-        title={todo.title}
-        tag={todo.tag}
-        status={todo.status}
-        key={'todo-index-' + index}
-      />
-    )
-  })
-
-  const addRef = useRef()
-  const inputRef = useRef()
 
   return (
     <>
       <MainDiv>
         <LeftDiv>
-          <MenuBox>{menuItemArr}</MenuBox>
+          <MenuList
+            menus={menus}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
         </LeftDiv>
         <RightDiv>
-          <AddBox>
-            <AddInput id={'todoInput'} ref={inputRef} />
-            <AddBtn
-              ref={addRef}
-              onClick={(e) => {
-                const todo = inputRef.current.value
-                if (!todo && todo === '') {
-                  return
-                }
-                invoke('add_todo', { todo: todo }).then((res) => {
-                  let todo = JSON.parse(res)
-                  let newTodos = [todo].concat(todos)
-                  setTodos(newTodos)
-                })
-              }}
-            >
-              Add
-            </AddBtn>
-          </AddBox>
-          <TodoUl>{todoItemArr}</TodoUl>
+          <AddBox activeTab={activeTab} menusArr={menusArr} refresh={refresh} />
+          <TodoList todos={todos} menusArr={menusArr} activeTab={activeTab} refresh={refresh} />
         </RightDiv>
       </MainDiv>
       <FooterDiv></FooterDiv>

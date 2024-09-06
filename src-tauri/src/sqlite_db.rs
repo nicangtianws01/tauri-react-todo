@@ -34,12 +34,9 @@ impl Database {
         Database { conn }
     }
 
-    pub fn list(&self, status: &str) -> String {
+    pub fn list(&self) -> String {
         let conn = &self.conn;
-        let mut sql = "select id, title, tag, status from todos order by id desc".to_string();
-        if status != "ALL" {
-          sql = format!("select id, title, tag, status from todos where status = \'{}\' order by id desc", status);
-        }
+        let sql = "select id, title, tag, status from todos order by id desc".to_string();
         let mut stmt = conn
             .prepare(&sql)
             .expect("error list todos");
@@ -71,7 +68,7 @@ impl Database {
             (&todo.title, "", "TODO"),
         )
         .expect("error add todo");
-        return serde_json::to_string(&todo).expect("error parse todo");
+        return "success".to_string();
     }
     pub fn remove(&self, _id: i32) -> String {
         let conn = &self.conn;
