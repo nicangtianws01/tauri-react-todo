@@ -83,7 +83,7 @@ impl Database {
             params![status, _id],
         )
         .expect("error mark todo");
-        return status.to_string();
+        return "success".to_string();
     }
 }
 

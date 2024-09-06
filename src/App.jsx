@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import styled from 'styled-components'
 import { invoke } from '@tauri-apps/api'
-import { confirm } from '@tauri-apps/api/dialog'
+import { confirm, message } from '@tauri-apps/api/dialog'
 import { useEffect } from 'react'
 import useLocalStorage from './hooks/localStorage'
 
@@ -113,7 +113,7 @@ const AddBtn = styled.button`
   }
 `
 
-function AddBox({ activeTab, menusArr, refresh }) {
+function AddBox({ refresh }) {
   const addRef = useRef()
   const inputRef = useRef()
   return (
@@ -163,7 +163,7 @@ function MenuList({ menus, activeTab, setActiveTab }) {
   return <MenuUl>{menuItemArr}</MenuUl>
 }
 
-function TodoList({ todos, activeTab, menusArr,refresh }) {
+function TodoList({ todos, activeTab, menusArr, refresh }) {
   let todoItemArr = []
   todos.forEach((todo, index) => {
     if (activeTab !== menusArr[0] && todo.status !== activeTab) {
@@ -193,16 +193,16 @@ function TodoItem({ id, title, tag, status, refresh }) {
           type="checkbox"
           checked={itemStatus === 'DONE'}
           onChange={(e) => {
+            const status = e.target.checked ? 'DONE' : 'TODO'
             invoke('mark_todo', {
               id: id,
-              status: e.target.checked ? 'DONE' : 'TODO',
+              status: status,
             }).then((res) => {
-              if (res === 'DONE') {
-                setItemStatus('DONE')
+              if (res !== 'success') {
+                message(res, '错误')
+                return
               }
-              if (res === 'TODO') {
-                setItemStatus('TODO')
-              }
+              setItemStatus(status)
             })
           }}
         />
@@ -259,7 +259,6 @@ export default function App() {
     refresh()
   }, [activeTab])
 
-
   return (
     <>
       <MainDiv>
@@ -271,8 +270,13 @@ export default function App() {
           />
         </LeftDiv>
         <RightDiv>
-          <AddBox activeTab={activeTab} menusArr={menusArr} refresh={refresh} />
-          <TodoList todos={todos} menusArr={menusArr} activeTab={activeTab} refresh={refresh} />
+          <AddBox refresh={refresh} />
+          <TodoList
+            todos={todos}
+            menusArr={menusArr}
+            activeTab={activeTab}
+            refresh={refresh}
+          />
         </RightDiv>
       </MainDiv>
       <FooterDiv></FooterDiv>
