@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { invoke } from '@tauri-apps/api'
 import { confirm } from '@tauri-apps/api/dialog'
 import { useEffect } from 'react'
+import useLocalStorage from './hooks/localStorage'
 
 const MainDiv = styled.div`
   display: grid;
@@ -19,8 +20,8 @@ const MenuBox = styled.ul`
 `
 
 const MenuLi = styled.li`
-  background-color: ${(props) => (props.active ? '#2894db' : '#80dfbbce')};
-  color: ${(props) => (props.active ? '#eee' : '#000')};
+  background-color: ${(props) => (props.$active ? '#2894db' : '#80dfbbce')};
+  color: ${(props) => (props.$active ? '#eee' : '#000')};
   margin: 5px;
   padding: 10px;
   border-radius: 50px;
@@ -46,10 +47,10 @@ const TodoItemDiv = styled.div`
   align-items: center;
 `
 const TodoContent = styled.span`
-  background-color: ${(props) => (props.done ? '#dddddd' : '#c9e2f8')};
+  background-color: ${(props) => (props.$done ? '#dddddd' : '#c9e2f8')};
   padding: 10px;
   border-radius: 50px;
-  text-decoration: ${(props) => (props.done ? 'line-through' : 'none')};
+  text-decoration: ${(props) => (props.$done ? 'line-through' : 'none')};
 `
 
 const DoneMarkCb = styled.input``
@@ -69,7 +70,6 @@ const DelMarkBtn = styled.button`
 
 const RightDiv = styled.div`
   width: 100%;
-  height: 800px;
 `
 
 const FooterDiv = styled.div`
@@ -114,7 +114,7 @@ const AddBtn = styled.button`
 
 function MenuItem({ id, name, active, onClick }) {
   return (
-    <MenuLi id={'menu-id-' + id} active={active} onClick={onClick}>
+    <MenuLi id={'menu-id-' + id} $active={active} onClick={onClick}>
       {name}
     </MenuLi>
   )
@@ -125,7 +125,7 @@ function TodoItem({ id, title, tag, status }) {
   return (
     <ItemLi id={'todo-id-' + id}>
       <TodoItemDiv>
-        <TodoContent done={itemStatus === 'DONE'}>{title}</TodoContent>
+        <TodoContent $done={itemStatus === 'DONE'}>{title}</TodoContent>
         <DoneMarkCb
           type="checkbox"
           checked={itemStatus === 'DONE'}
@@ -164,10 +164,11 @@ function TodoItem({ id, title, tag, status }) {
 
 export default function App() {
   const [todos, setTodos] = useState([])
-  const [activeMenu, setActiveMenu] = useState('ALL')
+  // const [activeMenu, setActiveMenu] = useState('ALL')
+  const [activeTab, setActiveTab] = useLocalStorage('activeTab', 'ALL')
 
   let menuItemArr = []
-  let menus = {
+  const menus = {
     ALL: {
       id: 1,
       name: 'ALL',
@@ -183,28 +184,28 @@ export default function App() {
   }
 
   Object.keys(menus).forEach((key, index) => {
-    let menu = menus[key]
+    const menu = menus[key]
     menuItemArr.push(
       <MenuItem
         id={menu.id}
         name={menu.name}
-        active={activeMenu == key}
+        active={activeTab == key}
         key={'menu-index-' + index}
         onClick={() => {
           console.log('click: ' + key)
-          setActiveMenu(key)
+          setActiveTab(key)
         }}
       />
     )
   })
 
   useEffect(() => {
-    let filter = { status: activeMenu }
+    let filter = { status: activeTab }
     invoke('init_todo', filter).then((res) => {
-      let todos = JSON.parse(res)
-      setTodos(todos)
+      let newTodos = JSON.parse(res)
+      setTodos(newTodos)
     })
-  }, [activeMenu])
+  }, [activeTab])
 
   let todoItemArr = []
   todos.forEach((todo, index) => {
