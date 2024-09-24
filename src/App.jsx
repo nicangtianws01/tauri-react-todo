@@ -86,30 +86,28 @@ const AddBoxDiv = styled.div`
   display: flex;
   justify-content: space-between;
   margin: 10px;
-`
-
-const AddInput = styled.input`
-  min-width: calc(100% - 64px);
-  font-size: 16px;
-  border: 1px solid #aed5f7;
-  border-radius: 50px;
-  padding: 5px;
-  &:focus {
-    border-color: #e65e9e;
-    outline: none;
+  input {
+    min-width: calc(100% - 64px);
+    font-size: 16px;
+    border: 1px solid #aed5f7;
+    border-radius: 50px;
+    padding: 5px;
+    &:focus {
+      border-color: #e65e9e;
+      outline: none;
+    }
   }
-`
-
-const AddBtn = styled.button`
-  width: 64px;
-  background-color: #e65e9e;
-  color: #fffeee;
-  border: none;
-  border-radius: 50px;
-  margin-left: 10px;
-  &:hover {
-    color: #333333;
-    background-color: #aed5f7;
+  button {
+    width: 64px;
+    background-color: #e487b3;
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    margin-left: 10px;
+    &:hover {
+      color: #eee;
+      background-color: #db498d;
+    }
   }
 `
 
@@ -118,8 +116,8 @@ function AddBox({ refresh }) {
   const inputRef = useRef()
   return (
     <AddBoxDiv>
-      <AddInput id={'todoInput'} ref={inputRef} />
-      <AddBtn
+      <input id={'todoInput'} ref={inputRef} />
+      <button
         ref={addRef}
         onClick={async (e) => {
           const todo = inputRef.current.value
@@ -132,11 +130,12 @@ function AddBox({ refresh }) {
               return
             }
             refresh()
+            inputRef.current.value = ''
           })
         }}
       >
-        Add
-      </AddBtn>
+        <i class="bi bi-arrow-right-circle"></i>
+      </button>
     </AddBoxDiv>
   )
 }
@@ -227,10 +226,68 @@ function TodoItem({ id, title, tag, status, refresh }) {
   )
 }
 
+const SearchDiv = styled.div`
+  margin: 5px;
+  display: flex;
+  flex-grow: 1;
+  min-width: calc(100% - 64px);
+  font-size: 16px;
+  border: 1px solid #aed5f7;
+  border-radius: 50px;
+  &:focus-within {
+    border-color: #e65e9e;
+  }
+  input {
+    padding: 3px;
+    border: none;
+    outline: none;
+    border-radius: 50px;
+    &:focus {
+      border: none;
+      outline: none;
+    }
+  }
+  button {
+    background-color: #e487b3;
+    color: #000;
+    text-decoration: none;
+    border: none;
+    border-radius: 50px;
+    padding: 5px;
+    width: 48px;
+    height: 32px;
+    &:hover {
+      color: #eee;
+      background-color: #db498d;
+    }
+  }
+`
+
+const SearchBox = ({ setKeyword }) => {
+  const kwRef = useRef()
+
+  const search = () => {
+    let kw = kwRef.current.value
+    if (!kw) {
+      return
+    }
+    setKeyword(kw)
+    console.log(kw)
+  }
+
+  return (
+    <SearchDiv id={'search-box'}>
+      <input type="text" ref={kwRef}></input>
+      <button onClick={search}><i class="bi-search"></i></button>
+    </SearchDiv>
+  )
+}
+
 export default function App() {
   const [todos, setTodos] = useState([])
   // const [activeMenu, setActiveMenu] = useState('ALL')
   const [activeTab, setActiveTab] = useLocalStorage('activeTab', 'ALL')
+  const [keyword, setKeyword] = useState('')
 
   const menus = {
     ALL: {
@@ -263,6 +320,7 @@ export default function App() {
     <>
       <MainDiv>
         <LeftDiv>
+          <SearchBox setKeyword={setKeyword}></SearchBox>
           <MenuList
             menus={menus}
             activeTab={activeTab}
