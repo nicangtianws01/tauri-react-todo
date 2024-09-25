@@ -15,9 +15,9 @@ fn greet(name: &str) -> String {
 
 
 #[tauri::command]
-fn init_todo() -> String {
+fn init_todo(kw: &str) -> String {
     let db = Database::open();
-    return db.list();
+    return db.list(kw);
 }
 
 #[tauri::command]

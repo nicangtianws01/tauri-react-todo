@@ -227,7 +227,7 @@ function TodoItem({ id, title, tag, status, refresh }) {
 }
 
 const SearchDiv = styled.div`
-  margin: 5px;
+  margin: 10px;
   display: flex;
   flex-grow: 1;
   min-width: calc(100% - 64px);
@@ -268,17 +268,15 @@ const SearchBox = ({ setKeyword }) => {
 
   const search = () => {
     let kw = kwRef.current.value
-    if (!kw) {
-      return
-    }
     setKeyword(kw)
-    console.log(kw)
   }
 
   return (
     <SearchDiv id={'search-box'}>
       <input type="text" ref={kwRef}></input>
-      <button onClick={search}><i class="bi-search"></i></button>
+      <button onClick={search}>
+        <i class="bi-search"></i>
+      </button>
     </SearchDiv>
   )
 }
@@ -307,14 +305,14 @@ export default function App() {
   const menusArr = Object.keys(menus)
 
   const refresh = () => {
-    invoke('init_todo').then((res) => {
+    invoke('init_todo', { kw: keyword }).then((res) => {
       let newTodos = JSON.parse(res)
       setTodos(newTodos)
     })
   }
   useEffect(() => {
     refresh()
-  }, [activeTab])
+  }, [activeTab, keyword])
 
   return (
     <>

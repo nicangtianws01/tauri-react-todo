@@ -34,25 +34,42 @@ impl Database {
         Database { conn }
     }
 
-    pub fn list(&self) -> String {
+    pub fn list(&self, kw: &str) -> String {
         let conn = &self.conn;
-        let sql = "select id, title, tag, status from todos order by id desc".to_string();
-        let mut stmt = conn
-            .prepare(&sql)
-            .expect("error list todos");
-        let rows = stmt
-            .query_map((), |row| {
-                Ok(Todo {
-                    id: row.get(0)?,
-                    title: row.get(1)?,
-                    tag: row.get(2)?,
-                    status: row.get(3)?,
+        if kw.len() != 0 {
+            let keyword = format!("%{}%", kw);
+            let sql =
+                "select id, title, tag, status from todos where title like :title order by id desc"
+                    .to_string();
+            let mut stmt = conn.prepare(&sql).expect("error list todos");
+            let rows = stmt
+                .query_map(&[(":title", keyword.as_str())], |row| {
+                    Ok(Todo {
+                        id: row.get(0)?,
+                        title: row.get(1)?,
+                        tag: row.get(2)?,
+                        status: row.get(3)?,
+                    })
                 })
-            })
-            .expect("error list todo");
-
-        let todos: Vec<Todo> = rows.map(|row| row.expect("error get todo")).collect();
-        return serde_json::to_string(&todos).expect("error parse todo");
+                .expect("error list todo");
+            let todos: Vec<Todo> = rows.map(|row| row.expect("error get todo")).collect();
+            return serde_json::to_string(&todos).expect("error parse todo");
+        } else {
+            let sql = "select id, title, tag, status from todos order by id desc".to_string();
+            let mut stmt = conn.prepare(&sql).expect("error list todos");
+            let rows = stmt
+                .query_map((), |row| {
+                    Ok(Todo {
+                        id: row.get(0)?,
+                        title: row.get(1)?,
+                        tag: row.get(2)?,
+                        status: row.get(3)?,
+                    })
+                })
+                .expect("error list todo");
+            let todos: Vec<Todo> = rows.map(|row| row.expect("error get todo")).collect();
+            return serde_json::to_string(&todos).expect("error parse todo");
+        }
     }
 
     pub fn add(&self, title: &str) -> String {
