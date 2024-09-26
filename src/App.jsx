@@ -31,44 +31,6 @@ const MenuLi = styled.li`
   }
 `
 
-const TodoUl = styled.div``
-
-const ItemLi = styled.li`
-  list-style: none;
-  min-width: 164px;
-  min-height: 30px;
-  margin: 10px;
-  background-color: aliceblue;
-  border-radius: 50px;
-`
-
-const TodoItemDiv = styled.div`
-  display: grid;
-  grid-template-columns: calc(100% - 64px) 32px 32px;
-  align-items: center;
-`
-const TodoContent = styled.span`
-  background-color: ${(props) => (props.$done ? '#dddddd' : '#c9e2f8')};
-  padding: 10px;
-  border-radius: 50px;
-  text-decoration: ${(props) => (props.$done ? 'line-through' : 'none')};
-`
-
-const DoneMarkCb = styled.input``
-
-const DelMarkBtn = styled.button`
-  text-align: center;
-  align-content: center;
-  background-color: transparent;
-  border: none;
-  color: red;
-  &:hover {
-    background-color: red;
-    color: aliceblue;
-    border-radius: 50px;
-  }
-`
-
 const RightDiv = styled.div`
   width: 100%;
 `
@@ -99,21 +61,21 @@ const AddBoxDiv = styled.div`
   }
   button {
     width: 64px;
-    background-color: #e487b3;
+    background-color: #e6a1c1;
     color: #000;
     border: none;
     border-radius: 50px;
     margin-left: 10px;
     &:hover {
       color: #eee;
-      background-color: #db498d;
+      background-color: #d6669a;
     }
   }
 `
 
 function AddBox({ refresh }) {
-  const addRef = useRef()
-  const inputRef = useRef()
+  const addRef = useRef(null)
+  const inputRef = useRef(null)
   return (
     <AddBoxDiv>
       <input id={'todoInput'} ref={inputRef} />
@@ -134,7 +96,7 @@ function AddBox({ refresh }) {
           })
         }}
       >
-        <i class="bi bi-arrow-right-circle"></i>
+        <i className={'bi bi-arrow-right-circle'}></i>
       </button>
     </AddBoxDiv>
   )
@@ -162,6 +124,62 @@ function MenuList({ menus, activeTab, setActiveTab }) {
   return <MenuUl>{menuItemArr}</MenuUl>
 }
 
+const TodoUl = styled.div``
+
+const ItemLi = styled.li`
+  list-style: none;
+  min-width: 164px;
+  min-height: 30px;
+  margin: 10px;
+  background-color: aliceblue;
+  border-radius: 50px;
+`
+
+const TodoItemDiv = styled.div`
+  display: grid;
+  grid-template-columns: calc(100% - 112px) 48px 32px 32px;
+  align-items: center;
+  button {
+    border: none;
+    background-color: #e6a1c1;
+    border-radius: 50px;
+    &:hover {
+      background-color: d6669a;
+      color: aliceblue;
+    }
+  }
+  input {
+    min-width: calc(100% - 64px);
+    font-size: 16px;
+    border: 1px solid #aed5f7;
+    border-radius: 50px;
+    padding: 10px;
+    &:focus {
+      border-color: #e65e9e;
+      outline: none;
+    }
+  }
+`
+const TodoContentSpan = styled.span`
+  background-color: ${(props) => (props.$done ? '#dddddd' : '#c9e2f8')};
+  padding: 10px;
+  border-radius: 50px;
+  text-decoration: ${(props) => (props.$done ? 'line-through' : 'none')};
+`
+
+const DelMarkBtn = styled.button`
+  text-align: center;
+  align-content: center;
+  background-color: transparent;
+  border: none;
+  color: red;
+  &:hover {
+    background-color: red;
+    color: aliceblue;
+    border-radius: 50px;
+  }
+`
+
 function TodoList({ todos, activeTab, menusArr, refresh }) {
   let todoItemArr = []
   todos.forEach((todo, index) => {
@@ -175,22 +193,73 @@ function TodoList({ todos, activeTab, menusArr, refresh }) {
         tag={todo.tag}
         status={todo.status}
         refresh={refresh}
-        key={'todo-key-' + index}
+        key={'key-todo-' + index}
       />
     )
   })
   return <TodoUl>{todoItemArr}</TodoUl>
 }
 
+function TodoContent({ id, title, editMode, status, inputRef }) {
+  if (editMode) {
+    return (
+      <input
+        id={'id-todo-content-' + id}
+        defaultValue={title}
+        ref={inputRef}
+        autoFocus
+      ></input>
+    )
+  } else {
+    return <TodoContentSpan $done={status === 'DONE'}>{title}</TodoContentSpan>
+  }
+}
+
 function TodoItem({ id, title, tag, status, refresh }) {
-  const [itemStatus, setItemStatus] = useState(status)
+  const [editMode, setEditMode] = useState(false)
+  const inputRef = useRef(null)
+
+  const changeEditMode = async () => {
+    if (editMode) {
+      if (inputRef.current.value === '') {
+        await message('内容不能为空', '提示')
+        return
+      }
+      await invoke('update_todo', {
+        id: id,
+        title: inputRef.current.value,
+      }).then((res) => {
+        if (res !== 'success') {
+          message(res, '错误')
+          return
+        }
+        refresh()
+      })
+    }
+
+    setEditMode(!editMode)
+  }
+
+  useEffect(() => {
+    if (editMode) {
+      inputRef.current.focus()
+    }
+  }, [editMode])
+
   return (
-    <ItemLi id={'todo-id-' + id}>
+    <ItemLi id={'id-todo-' + id}>
       <TodoItemDiv>
-        <TodoContent $done={itemStatus === 'DONE'}>{title}</TodoContent>
-        <DoneMarkCb
+        <TodoContent
+          title={title}
+          id={id}
+          editMode={editMode}
+          status={status}
+          inputRef={inputRef}
+        ></TodoContent>
+        <button onClick={changeEditMode}>{editMode ? '完成' : '编辑'}</button>
+        <input
           type="checkbox"
-          checked={itemStatus === 'DONE'}
+          checked={status === 'DONE'}
           onChange={(e) => {
             const status = e.target.checked ? 'DONE' : 'TODO'
             invoke('mark_todo', {
@@ -201,7 +270,7 @@ function TodoItem({ id, title, tag, status, refresh }) {
                 message(res, '错误')
                 return
               }
-              setItemStatus(status)
+              refresh()
             })
           }}
         />
@@ -238,6 +307,7 @@ const SearchDiv = styled.div`
     border-color: #e65e9e;
   }
   input {
+    font-size: 16px;
     padding: 3px;
     border: none;
     outline: none;
@@ -248,13 +318,13 @@ const SearchDiv = styled.div`
     }
   }
   button {
-    background-color: #e487b3;
+    background-color: #e487b29d;
     color: #000;
     text-decoration: none;
     border: none;
     border-radius: 50px;
     padding: 5px;
-    width: 48px;
+    width: 32px;
     height: 32px;
     &:hover {
       color: #eee;
@@ -264,7 +334,7 @@ const SearchDiv = styled.div`
 `
 
 const SearchBox = ({ setKeyword }) => {
-  const kwRef = useRef()
+  const kwRef = useRef(null)
 
   const search = () => {
     let kw = kwRef.current.value
@@ -273,9 +343,9 @@ const SearchBox = ({ setKeyword }) => {
 
   return (
     <SearchDiv id={'search-box'}>
-      <input type="text" ref={kwRef}></input>
+      <input type={'text'} ref={kwRef}></input>
       <button onClick={search}>
-        <i class="bi-search"></i>
+        <i className={'bi-search'}></i>
       </button>
     </SearchDiv>
   )

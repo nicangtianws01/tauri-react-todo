@@ -13,7 +13,6 @@ fn greet(name: &str) -> String {
     format!("Hello, {}!", name)
 }
 
-
 #[tauri::command]
 fn init_todo(kw: &str) -> String {
     let db = Database::open();
@@ -38,9 +37,22 @@ fn mark_todo(_id: i32, status: &str) -> String {
     return db.mark(_id, status);
 }
 
+#[tauri::command]
+fn update_todo(_id: i32, title: &str) -> String {
+    let db = Database::open();
+    return db.update(_id, title);
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, init_todo, add_todo, remove_todo, mark_todo])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            init_todo,
+            add_todo,
+            remove_todo,
+            mark_todo,
+            update_todo
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

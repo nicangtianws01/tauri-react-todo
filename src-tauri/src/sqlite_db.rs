@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use dirs2::home_dir;
-use rusqlite::{params, Connection};
+use rusqlite::{named_params, params, Connection};
 use std::fs::{create_dir, File};
 
 #[derive(serde::Serialize)]
@@ -98,6 +98,15 @@ impl Database {
         conn.execute(
             "update todos set status=?1 where id=?2",
             params![status, _id],
+        )
+        .expect("error mark todo");
+        return "success".to_string();
+    }
+    pub fn update(&self, _id: i32, title: &str) -> String {
+        let conn = &self.conn;
+        conn.execute(
+            "update todos set title=:title where id=:id",
+            named_params! {":title": title, ":id": _id},
         )
         .expect("error mark todo");
         return "success".to_string();
