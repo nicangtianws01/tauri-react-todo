@@ -1,8 +1,12 @@
-# React + Vite
+# Simple-Todo
+## Introduce
+基于tauri + react的todo工具，使用rusqlite作为存储库。
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Features
+- 状态分类
+- 搜索
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Todo
+- 回收站
+- 添加标签
+- 统计
