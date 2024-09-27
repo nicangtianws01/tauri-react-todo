@@ -43,6 +43,18 @@ fn update_todo(_id: i32, title: &str) -> String {
     return db.update(_id, title);
 }
 
+#[tauri::command]
+fn add_tag(name: &str) -> String {
+    let db = Database::open();
+    return db.add_tag(name);
+}
+
+#[tauri::command]
+fn list_tag() -> String {
+    let db = Database::open();
+    return db.list_tag();
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -51,7 +63,9 @@ fn main() {
             add_todo,
             remove_todo,
             mark_todo,
-            update_todo
+            update_todo,
+            add_tag,
+            list_tag
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

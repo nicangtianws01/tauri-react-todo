@@ -12,6 +12,13 @@ pub struct Todo {
     pub status: String,
 }
 
+#[derive(serde::Serialize)]
+pub struct Tag {
+    pub id: i32,
+    pub name: String,
+    pub del_flag: i32,
+}
+
 pub struct Database {
     pub conn: Connection,
 }
@@ -27,6 +34,16 @@ impl Database {
            title text not null,
            tag text,
            status text not null
+       )",
+            (),
+        )
+        .expect("error init db");
+    
+        conn.execute(
+            "create table if not exists tags (
+           id integer primary key,
+           name text not null,
+           del_flag integer default 0
        )",
             (),
         )
@@ -110,6 +127,38 @@ impl Database {
         )
         .expect("error mark todo");
         return "success".to_string();
+    }
+
+    pub fn add_tag(&self, name: &str) -> String {
+        let conn = &self.conn;
+        let tag = Tag {
+            id: 0,
+            name: name.to_string(),
+            del_flag: 0,
+        };
+        conn.execute(
+            "INSERT INTO tags (name) VALUES (:name)",
+            named_params! {":name": &tag.name}
+        )
+        .expect("error add todo");
+        return "success".to_string();
+    }
+
+    pub fn list_tag(&self) -> String {
+        let conn = &self.conn;
+        let sql = "select id, name, del_flag from tags order by id desc".to_string();
+            let mut stmt = conn.prepare(&sql).expect("error list tag");
+            let rows = stmt
+                .query_map((), |row| {
+                    Ok(Tag {
+                        id: row.get(0)?,
+                        name: row.get(1)?,
+                        del_flag: row.get(2)?,
+                    })
+                })
+                .expect("error list tag");
+            let tags: Vec<Tag> = rows.map(|row| row.expect("error get tag")).collect();
+            return serde_json::to_string(&tags).expect("error parse tag");
     }
 }
 

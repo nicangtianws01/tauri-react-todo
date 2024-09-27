@@ -351,8 +351,120 @@ const SearchBox = ({ setKeyword }) => {
   )
 }
 
+const TagBoxDiv = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  align-items: center;
+  margin: 10px;
+  span {
+    margin-left: 5px;
+  }
+`
+
+const TagSpan = styled.span`
+  border: 1px solid #aed5f7;
+  border-radius: 15px;
+  padding: 5px;
+  margin-top: 5px;
+  input {
+    outline: none;
+    border: none;
+    width: 64px;
+  }
+`
+
+const TagAddSpan = styled.span`
+  :hover {
+    color: #db498d;
+  }
+`
+
+function Tag({ id, name, refreshTag }) {
+  const [editMode, setEditMode] = useState(false)
+  const inputRef = useRef(null)
+
+  if (editMode) {
+    return (
+      <TagSpan>
+        <input type="text" defaultValue={name} ref={inputRef} autoFocus></input>
+        <i
+          className="bi bi-check"
+          onClick={() => {
+            setEditMode(false)
+            refreshTag()
+          }}
+        ></i>
+      </TagSpan>
+    )
+  } else {
+    return (
+      <TagSpan
+        id={'id-tag-' + id}
+        onDoubleClick={() => {
+          setEditMode(true)
+        }}
+      >
+        {name}
+      </TagSpan>
+    )
+  }
+}
+
+function TagAdd({ refreshTag }) {
+  const inputRef = useRef(null)
+  const [editMode, setEditMode] = useState(false)
+  if (editMode) {
+    return (
+      <TagSpan>
+        <input type="text" ref={inputRef} autoFocus></input>
+        <i
+          className="bi bi-check"
+          onClick={async () => {
+            await invoke('add_tag', { name: inputRef.current.value }).then(
+              (res) => {
+                if (res === 'success') {
+                  setEditMode(false)
+                  refreshTag()
+                }
+              }
+            )
+          }}
+        ></i>
+      </TagSpan>
+    )
+  } else {
+    return (
+      <TagAddSpan>
+        <i
+          onClick={() => {
+            setEditMode(true)
+          }}
+          className="bi bi-plus-circle"
+        ></i>
+      </TagAddSpan>
+    )
+  }
+}
+
+function TagBox({ tags, refreshTag }) {
+  const tagArr = []
+  tags.map((tag) => {
+    tagArr.push(<Tag id={tag.id} name={tag.name} refreshTag={refreshTag}></Tag>)
+  })
+
+  return (
+    <TagBoxDiv>
+      <span>标签:</span>
+      {tagArr}
+      <TagAdd refreshTag={refreshTag}></TagAdd>
+    </TagBoxDiv>
+  )
+}
+
 export default function App() {
   const [todos, setTodos] = useState([])
+  const [tags, setTags] = useState([])
   // const [activeMenu, setActiveMenu] = useState('ALL')
   const [activeTab, setActiveTab] = useLocalStorage('activeTab', 'ALL')
   const [keyword, setKeyword] = useState('')
@@ -380,9 +492,21 @@ export default function App() {
       setTodos(newTodos)
     })
   }
+
+  const refreshTag = () => {
+    invoke('list_tag').then((res) => {
+      let newTags = JSON.parse(res)
+      setTags(newTags)
+    })
+  }
   useEffect(() => {
     refresh()
   }, [activeTab, keyword])
+  
+  
+  useEffect(() => {
+    refreshTag()
+  }, [])
 
   return (
     <>
@@ -397,6 +521,7 @@ export default function App() {
         </LeftDiv>
         <RightDiv>
           <AddBox refresh={refresh} />
+          <TagBox tags={tags} refreshTag={refreshTag}></TagBox>
           <TodoList
             todos={todos}
             menusArr={menusArr}
