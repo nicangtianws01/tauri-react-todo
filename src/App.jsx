@@ -371,6 +371,17 @@ const TagSpan = styled.span`
     outline: none;
     border: none;
     width: 64px;
+    border-radius: 15px;
+  }
+  &:hover {
+    background-color: #e097b99d;
+    color: #fffeee;
+  }
+  i {
+    margin-left: 5px;
+    &:hover {
+      color: red;
+    }
   }
 `
 
@@ -407,15 +418,8 @@ function Tag({ id, name, refreshTag }) {
         <i
           className="bi bi-x"
           onClick={async () => {
-            if (!(await confirm('是否确认删除？', '警告'))) {
-              return
-            }
-            await invoke('del_tag', { id: id }).then((res) => {
-              if (res === 'success') {
-                setEditMode(false)
-                refreshTag()
-              }
-            })
+            setEditMode(false)
+            refreshTag()
           }}
         ></i>
       </TagSpan>
@@ -429,6 +433,20 @@ function Tag({ id, name, refreshTag }) {
         }}
       >
         {name}
+        <i
+          className="bi bi-x"
+          onClick={async () => {
+            if (!(await confirm('是否确认删除？', '警告'))) {
+              return
+            }
+            await invoke('del_tag', { id: id }).then((res) => {
+              if (res === 'success') {
+                setEditMode(false)
+                refreshTag()
+              }
+            })
+          }}
+        ></i>
       </TagSpan>
     )
   }
@@ -445,13 +463,13 @@ function TagAdd({ refreshTag }) {
           className="bi bi-check"
           onClick={async () => {
             if (
-              inputRef.current.value ||
+              !inputRef.current.value ||
               inputRef.current.value.trim() === ''
             ) {
               setEditMode(false)
               return
             }
-            await invoke('add_tag', { name: inputRef.current.value }).then(
+            await invoke('add_tag', { name: inputRef.current.value.trim() }).then(
               (res) => {
                 if (res === 'success') {
                   setEditMode(false)
@@ -464,9 +482,6 @@ function TagAdd({ refreshTag }) {
         <i
           className="bi bi-x"
           onClick={async () => {
-            if (!(await confirm('是否确认删除？', '警告'))) {
-              return
-            }
             setEditMode(false)
             refreshTag()
           }}
@@ -492,7 +507,7 @@ function TagBox({ tags, refreshTag }) {
   tags.map((tag) => {
     if (tag.del_flag === 0) {
       tagArr.push(
-        <Tag id={tag.id} name={tag.name} refreshTag={refreshTag}></Tag>
+        <Tag key={'key-tag-' + tag.id} id={tag.id} name={tag.name} refreshTag={refreshTag}></Tag>
       )
     }
   })
