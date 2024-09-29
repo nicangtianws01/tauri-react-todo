@@ -139,12 +139,20 @@ const TodoItemDiv = styled.div`
   display: grid;
   grid-template-columns: calc(100% - 112px) 48px 32px 32px;
   align-items: center;
-  button {
+  .btn-edit {
     border: none;
-    background-color: #e6a1c1;
+    /* background-color: #e6a1c1; */
     border-radius: 50px;
     &:hover {
-      background-color: d6669a;
+      background-color: #e6a1c1;
+      color: aliceblue;
+    }
+  }
+  .btn-del {
+    border: none;
+    border-radius: 50px;
+    &:hover {
+      background-color: red;
       color: aliceblue;
     }
   }
@@ -256,7 +264,7 @@ function TodoItem({ id, title, tag, status, refresh }) {
           status={status}
           inputRef={inputRef}
         ></TodoContent>
-        <button onClick={changeEditMode}>{editMode ? '完成' : '编辑'}</button>
+        <button className='btn-edit' onClick={changeEditMode}>{editMode ? '完成' : '编辑'}</button>
         <input
           type="checkbox"
           checked={status === 'DONE'}
