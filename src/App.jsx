@@ -390,9 +390,32 @@ function Tag({ id, name, refreshTag }) {
         <input type="text" defaultValue={name} ref={inputRef} autoFocus></input>
         <i
           className="bi bi-check"
-          onClick={() => {
-            setEditMode(false)
-            refreshTag()
+          onClick={async () => {
+            if (id) {
+              await invoke('update_tag', {
+                id: id,
+                name: inputRef.current.value,
+              }).then((res) => {
+                if (res === 'success') {
+                  setEditMode(false)
+                  refreshTag()
+                }
+              })
+            }
+          }}
+        ></i>
+        <i
+          className="bi bi-x"
+          onClick={async () => {
+            if (!(await confirm('是否确认删除？', '警告'))) {
+              return
+            }
+            await invoke('del_tag', { id: id }).then((res) => {
+              if (res === 'success') {
+                setEditMode(false)
+                refreshTag()
+              }
+            })
           }}
         ></i>
       </TagSpan>
@@ -421,6 +444,13 @@ function TagAdd({ refreshTag }) {
         <i
           className="bi bi-check"
           onClick={async () => {
+            if (
+              inputRef.current.value ||
+              inputRef.current.value.trim() === ''
+            ) {
+              setEditMode(false)
+              return
+            }
             await invoke('add_tag', { name: inputRef.current.value }).then(
               (res) => {
                 if (res === 'success') {
@@ -429,6 +459,16 @@ function TagAdd({ refreshTag }) {
                 }
               }
             )
+          }}
+        ></i>
+        <i
+          className="bi bi-x"
+          onClick={async () => {
+            if (!(await confirm('是否确认删除？', '警告'))) {
+              return
+            }
+            setEditMode(false)
+            refreshTag()
           }}
         ></i>
       </TagSpan>
@@ -450,7 +490,11 @@ function TagAdd({ refreshTag }) {
 function TagBox({ tags, refreshTag }) {
   const tagArr = []
   tags.map((tag) => {
-    tagArr.push(<Tag id={tag.id} name={tag.name} refreshTag={refreshTag}></Tag>)
+    if (tag.del_flag === 0) {
+      tagArr.push(
+        <Tag id={tag.id} name={tag.name} refreshTag={refreshTag}></Tag>
+      )
+    }
   })
 
   return (
@@ -502,8 +546,7 @@ export default function App() {
   useEffect(() => {
     refresh()
   }, [activeTab, keyword])
-  
-  
+
   useEffect(() => {
     refreshTag()
   }, [])

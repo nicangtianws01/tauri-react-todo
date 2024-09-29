@@ -144,6 +144,36 @@ impl Database {
         return "success".to_string();
     }
 
+    pub fn update_tag(&self, _id: i32, name: &str) -> String {
+        let conn = &self.conn;
+        let tag = Tag {
+            id: _id,
+            name: name.to_string(),
+            del_flag: 0,
+        };
+        conn.execute(
+            "update tags set name=:name where id=:id",
+            named_params! {":id": &tag.id, ":name": &tag.name}
+        )
+        .expect("error add todo");
+        return "success".to_string();
+    }
+
+    pub fn del_tag(&self, _id: i32) -> String {
+        let conn = &self.conn;
+        let tag = Tag {
+            id: _id,
+            name: "".to_string(),
+            del_flag: 0,
+        };
+        conn.execute(
+            "update tags set del_flag = 1 where id=:id",
+            named_params! {":id": &tag.id}
+        )
+        .expect("error add todo");
+        return "success".to_string();
+    }
+
     pub fn list_tag(&self) -> String {
         let conn = &self.conn;
         let sql = "select id, name, del_flag from tags order by id desc".to_string();

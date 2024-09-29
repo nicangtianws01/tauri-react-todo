@@ -50,6 +50,18 @@ fn add_tag(name: &str) -> String {
 }
 
 #[tauri::command]
+fn update_tag(_id: i32, name: &str) -> String {
+    let db = Database::open();
+    return db.update_tag(_id, name);
+}
+
+#[tauri::command]
+fn del_tag(_id: i32) -> String {
+    let db = Database::open();
+    return db.del_tag(_id);
+}
+
+#[tauri::command]
 fn list_tag() -> String {
     let db = Database::open();
     return db.list_tag();
@@ -65,7 +77,9 @@ fn main() {
             mark_todo,
             update_todo,
             add_tag,
-            list_tag
+            list_tag,
+            update_tag,
+            del_tag
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
