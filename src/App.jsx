@@ -374,7 +374,6 @@ const TagSpan = styled.span`
   border: 1px solid #aed5f7;
   border-radius: 15px;
   padding: 5px;
-  margin-top: 5px;
   input {
     outline: none;
     border: none;
@@ -440,7 +439,7 @@ function Tag({ id, name, refreshTag }) {
           setEditMode(true)
         }}
       >
-        {name}
+        <span>{name}</span>
         <i
           className="bi bi-x"
           onClick={async () => {
