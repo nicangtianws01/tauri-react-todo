@@ -20,9 +20,9 @@ fn init_todo(kw: &str) -> String {
 }
 
 #[tauri::command]
-fn add_todo(todo: &str) -> String {
+fn add_todo(todo: &str, tag: &str) -> String {
     let db = Database::open();
-    return db.add(todo);
+    return db.add(todo, tag);
 }
 
 #[tauri::command]

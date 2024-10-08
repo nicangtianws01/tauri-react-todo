@@ -89,17 +89,17 @@ impl Database {
         }
     }
 
-    pub fn add(&self, title: &str) -> String {
+    pub fn add(&self, title: &str, tag: &str) -> String {
         let conn = &self.conn;
         let todo = Todo {
             id: 0,
             title: title.to_string(),
-            tag: "".to_string(),
+            tag: tag.to_string(),
             status: "".to_string(),
         };
         conn.execute(
             "INSERT INTO todos (title, tag, status) VALUES (?1, ?2, ?3)",
-            (&todo.title, "", "TODO"),
+            (&todo.title, &todo.tag, "TODO"),
         )
         .expect("error add todo");
         return "success".to_string();

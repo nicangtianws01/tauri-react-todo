@@ -73,9 +73,12 @@ const AddBoxDiv = styled.div`
   }
 `
 
-function AddBox({ refresh }) {
+function AddBox({ refresh, setSelectedTags, selectedTags }) {
   const addRef = useRef(null)
   const inputRef = useRef(null)
+  let selectedTagArr = Object.keys(selectedTags).filter((key) => {
+    return selectedTags[key]
+  })
   return (
     <AddBoxDiv>
       <input id={'todoInput'} ref={inputRef} />
@@ -86,12 +89,16 @@ function AddBox({ refresh }) {
           if (!todo && todo === '') {
             return
           }
-          invoke('add_todo', { todo: todo }).then((res) => {
+          invoke('add_todo', {
+            todo: todo,
+            tag: selectedTagArr.join(','),
+          }).then((res) => {
             if (res !== 'success') {
               message(res, '错误')
               return
             }
             refresh()
+            setSelectedTags({})
             inputRef.current.value = ''
           })
         }}
@@ -264,7 +271,9 @@ function TodoItem({ id, title, tag, status, refresh }) {
           status={status}
           inputRef={inputRef}
         ></TodoContent>
-        <button className='btn-edit' onClick={changeEditMode}>{editMode ? '完成' : '编辑'}</button>
+        <button className="btn-edit" onClick={changeEditMode}>
+          {editMode ? '完成' : '编辑'}
+        </button>
         <input
           type="checkbox"
           checked={status === 'DONE'}
@@ -374,6 +383,7 @@ const TagSpan = styled.span`
   border: 1px solid #aed5f7;
   border-radius: 15px;
   padding: 5px;
+  background-color: ${(props) => (props.$selected ? '#aed5f7' : '#fff')};
   input {
     outline: none;
     border: none;
@@ -398,7 +408,7 @@ const TagAddSpan = styled.span`
   }
 `
 
-function Tag({ id, name, refreshTag }) {
+function Tag({ id, name, selected, refreshTag, handleSelectTag }) {
   const [editMode, setEditMode] = useState(false)
   const inputRef = useRef(null)
 
@@ -435,6 +445,10 @@ function Tag({ id, name, refreshTag }) {
     return (
       <TagSpan
         id={'id-tag-' + id}
+        $selected={selected}
+        onClick={() => {
+          handleSelectTag(id)
+        }}
         onDoubleClick={() => {
           setEditMode(true)
         }}
@@ -476,14 +490,14 @@ function TagAdd({ refreshTag }) {
               setEditMode(false)
               return
             }
-            await invoke('add_tag', { name: inputRef.current.value.trim() }).then(
-              (res) => {
-                if (res === 'success') {
-                  setEditMode(false)
-                  refreshTag()
-                }
+            await invoke('add_tag', {
+              name: inputRef.current.value.trim(),
+            }).then((res) => {
+              if (res === 'success') {
+                setEditMode(false)
+                refreshTag()
               }
-            )
+            })
           }}
         ></i>
         <i
@@ -509,12 +523,27 @@ function TagAdd({ refreshTag }) {
   }
 }
 
-function TagBox({ tags, refreshTag }) {
+function TagBox({ tags, refreshTag, selectedTags, setSelectedTags }) {
+  const handleSelectTag = (id) => {
+    const newSelectedTags = {
+      ...selectedTags,
+    }
+    newSelectedTags[id] = !selectedTags[id]
+    setSelectedTags(newSelectedTags)
+  }
+
   const tagArr = []
   tags.map((tag) => {
     if (tag.del_flag === 0) {
       tagArr.push(
-        <Tag key={'key-tag-' + tag.id} id={tag.id} name={tag.name} refreshTag={refreshTag}></Tag>
+        <Tag
+          key={'key-tag-' + tag.id}
+          id={tag.id}
+          name={tag.name}
+          selected={selectedTags[tag.id]}
+          refreshTag={refreshTag}
+          handleSelectTag={handleSelectTag}
+        ></Tag>
       )
     }
   })
@@ -531,6 +560,7 @@ function TagBox({ tags, refreshTag }) {
 export default function App() {
   const [todos, setTodos] = useState([])
   const [tags, setTags] = useState([])
+  const [selectedTags, setSelectedTags] = useState({})
   // const [activeMenu, setActiveMenu] = useState('ALL')
   const [activeTab, setActiveTab] = useLocalStorage('activeTab', 'ALL')
   const [keyword, setKeyword] = useState('')
@@ -585,8 +615,17 @@ export default function App() {
           />
         </LeftDiv>
         <RightDiv>
-          <AddBox refresh={refresh} />
-          <TagBox tags={tags} refreshTag={refreshTag}></TagBox>
+          <AddBox
+            refresh={refresh}
+            setSelectedTags={setSelectedTags}
+            selectedTags={selectedTags}
+          />
+          <TagBox
+            tags={tags}
+            refreshTag={refreshTag}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
+          ></TagBox>
           <TodoList
             todos={todos}
             menusArr={menusArr}
