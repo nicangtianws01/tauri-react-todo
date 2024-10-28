@@ -195,12 +195,23 @@ const DelMarkBtn = styled.button`
   }
 `
 
-function TodoList({ todos, activeTab, menusArr, refresh }) {
+function TodoList({ todos, activeTab, menusArr, refresh, searchTagIds }) {
   let todoItemArr = []
   todos.forEach((todo, index) => {
     if (activeTab !== menusArr[0] && todo.status !== activeTab) {
       return
     }
+
+    if (Object.keys(searchTagIds).length > 0) {
+      let filteredTagId = todo.tag.split(',').filter((t) => {
+        return searchTagIds[t]
+      })
+
+      if (filteredTagId.length === 0) {
+        return
+      }
+    }
+
     todoItemArr.push(
       <TodoItem
         id={todo.id}
@@ -557,10 +568,54 @@ function TagBox({ tags, refreshTag, selectedTags, setSelectedTags }) {
   )
 }
 
+const TagSearchBox = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  align-items: center;
+  margin: 5px;
+  span {
+    margin-right: 5px;
+  }
+`
+
+function TagSearch({ tags, refreshTag, searchTagIds, setSearchTagIds }) {
+  const handleSelectTag = (id) => {
+    const newSearchTagIds = {
+      ...searchTagIds,
+    }
+    newSearchTagIds[id] = !searchTagIds[id]
+    setSearchTagIds(newSearchTagIds)
+  }
+
+  let tagArr = []
+
+  tags.map((tag) => {
+    if (tag.del_flag === 0) {
+      let selected = searchTagIds[tag.id] ? true : false
+      tagArr.push(
+        <TagSpan
+          key={'key-tag-' + tag.id}
+          id={'id-tag-' + tag.id}
+          $selected={selected}
+          onClick={() => {
+            handleSelectTag(tag.id)
+          }}
+        >
+          {tag.name}
+        </TagSpan>
+      )
+    }
+  })
+
+  return <TagSearchBox>{tagArr}</TagSearchBox>
+}
+
 export default function App() {
   const [todos, setTodos] = useState([])
   const [tags, setTags] = useState([])
   const [selectedTags, setSelectedTags] = useState({})
+  const [searchTagIds, setSearchTagIds] = useState({})
   // const [activeMenu, setActiveMenu] = useState('ALL')
   const [activeTab, setActiveTab] = useLocalStorage('activeTab', 'ALL')
   const [keyword, setKeyword] = useState('')
@@ -613,6 +668,12 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
+          <TagSearch
+            tags={tags}
+            refreshTag={refreshTag}
+            searchTagIds={searchTagIds}
+            setSearchTagIds={setSearchTagIds}
+          ></TagSearch>
         </LeftDiv>
         <RightDiv>
           <AddBox
@@ -631,6 +692,7 @@ export default function App() {
             menusArr={menusArr}
             activeTab={activeTab}
             refresh={refresh}
+            searchTagIds={searchTagIds}
           />
         </RightDiv>
       </MainDiv>
